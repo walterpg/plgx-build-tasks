@@ -21,18 +21,26 @@
   -->
 
   <!--
+    <PlgxArchiveFileName> can be specified to override the base
+    file name of the .PLGX archive.
+  -->
+  <Target Name="PlgxGetArchiveFileName"
+          Condition=" '$(PlgxArchiveFileName)' == '' "
+          Outputs="PlgxArchiveFileName"
+  >
+    <PropertyGroup>
+      <PlgxArchiveFileName>$(AssemblyName)</PlgxArchiveFileName>
+    </PropertyGroup>
+  </Target>
+
+  <!--
     <PlgxOuputFolder> specifies the directory for the generated .PLGX
-    file. If not specified, this value defaults to a directory named
-    "bin\Plgx_..." in the project file directory (needs to be in 'bin'
-    so SDK projects won't glob them as <None> items).
+    file.
   -->
   <Target Name="PlgxGetOutputFolder" Condition=" '$(PlgxOuputFolder)' == '' "
       Outputs="$(PlgxOutputFolder)">
-    <PropertyGroup Condition=" '$(TargetFramework)' != '' ">
-      <PlgxOutputFolder>$(MSBuildProjectDirectory)\bin\Plgx\$(Configuration)\$(TargetFramework)\</PlgxOutputFolder>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(TargetFramework)' == '' ">
-      <PlgxOutputFolder>$(MSBuildProjectDirectory)\bin\Plgx\$(Configuration)\</PlgxOutputFolder>
+    <PropertyGroup>
+      <PlgxOutputFolder>$(MSBuildProjectDirectory)\$(OutputPath)</PlgxOutputFolder>
     </PropertyGroup>
   </Target>
 
@@ -108,19 +116,6 @@
   </Target>
   
   <!--
-    <PlgxArchiveFileName> can be specified to override the base
-    file name of the .PLGX archive.
-  -->
-  <Target Name="PlgxGetArchiveFileName"
-          Condition=" '$(PlgxArchiveFileName)' == '' "
-          Outputs="PlgxArchiveFileName"
-  >
-    <PropertyGroup>
-      <PlgxArchiveFileName>$(AssemblyName)</PlgxArchiveFileName>
-    </PropertyGroup>
-  </Target>
-  
-  <!--
     Define default value for directory path of copied references.
   -->
   <Target Name="PlgxGetProjectReferencesFolderName"
@@ -141,6 +136,13 @@
     </PropertyGroup>
   </Target>
 
+  <!--
+    Extend 'clean' target to remove output file.
+  -->
+  <Target Name="PlgxDeleteOutputFile" DependsOnTargets="PlgxGetArchiveFileName;PlgxGetOutputFolder">
+    <Delete Files="$(PlgxOutputFolder)$(PlgxArchiveFileName).plgx" />
+  </Target>
+
   <PropertyGroup>
     <PlgxBuildDependsOn>
       PlgxGetProjectReferencesFolderName;
@@ -155,6 +157,7 @@
       PlgxGetArchiveFileName;
       Build
     </PlgxBuildDependsOn>
+    <CleanDependsOn>PlgxDeleteOutputFile;$(CleanDependsOn)</CleanDependsOn>
   </PropertyGroup>
 
   <UsingTask TaskName="PlgxBuildTask"  AssemblyFile="$(PlgxBuildTasksDir)PlgxBuildTasks.dll" />
