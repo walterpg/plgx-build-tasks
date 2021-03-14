@@ -1,4 +1,24 @@
-﻿using Microsoft.Build.Framework;
+﻿/*
+    This file is part of the PlgxBuildTasks distribution:
+    https://github/walterpg/PlgxBuildTasks
+
+    Copyright(C) 2021 Walter Goodwin
+
+    PlgxBuildTasks is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    PlgxBuildTasks is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with PlgxBuildTasks.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System;
 using System.Diagnostics;
@@ -73,7 +93,7 @@ namespace PlgxBuildTasks
             Dispose(true);
         }
 
-        protected void Dispose(bool isDisposing)
+        protected void Dispose(bool _)
         {
             Close();
             m_out?.Dispose();
@@ -89,8 +109,6 @@ namespace PlgxBuildTasks
             {
                 if (string.IsNullOrEmpty(TargetNetFramework))
                 {
-                    Log.LogWarning(
-                        "Target framework version is not specified.");
                     return null;
                 }
 
@@ -122,8 +140,6 @@ namespace PlgxBuildTasks
             {
                 if (string.IsNullOrEmpty(TargetKpVersionString))
                 {
-                    Log.LogWarning(
-                        "Target KeePass version is not specified.");
                     return null;
                 }
 
@@ -135,6 +151,16 @@ namespace PlgxBuildTasks
 
                 return ver;
             }
+        }
+
+        void FormatManifest(string description, string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                value = "(not specified)";
+            }
+            Log.LogMessage(MessageImportance.Normal,
+                $"{description,25}: {value}");
         }
 
         void EnsureStreaming()
@@ -153,8 +179,17 @@ namespace PlgxBuildTasks
             }
 
             Log.LogMessage(MessageImportance.Normal,
-                $"Creating PLGX archive '{BaseFileName}' as " +
-                $"'{OutputFilePath}'.");
+                $"PLGX archive manifest for '{BaseFileName}':");
+            FormatManifest("KeePass version", TargetKpVersion?.ToString(2));
+            FormatManifest(".NET Framework",
+                TargetFrameworkVersion?.ToString());
+            FormatManifest("Operating system", TargetOsMoniker);
+            FormatManifest("Pointer size",
+                TargetPointerSize.HasValue &&
+                TargetPointerSize.Value != default ?
+                    TargetPointerSize.Value.ToString() : null);
+            FormatManifest("Pre-restore command", PreProc);
+            FormatManifest("Post-restore command", PostProc);
 
             m_out.Write(PlgxMagicNumber);
             m_out.Write(PlgxFormatVersion.ToKpUintVer());
@@ -168,43 +203,20 @@ namespace PlgxBuildTasks
                 PlgxKpGeneratorVersion.ToKpUlongVer());
 
             Version targetVersion = TargetKpVersion;
-            if (targetVersion == null)
-            {
-                Log.LogWarning(
-                    "PLGX archive valid target KP version is missing; " +
-                    "KP cannot verify that its version is usable with " +
-                    "the plugin without this property.");
-            }
-            else
+            if (targetVersion != null)
             {
                 WriteObject((int)ArchObj.PrereqKp,
                     targetVersion.ToKpUlongVer());
             }
 
             targetVersion = TargetFrameworkVersion;
-            if (targetVersion == null)
-            {
-                Log.LogWarning(
-                    "PLGX archive target framework is missing; " +
-                    "KP cannot verify that the platform is " +
-                    "running a .NET version required by the plugin " +
-                    "without this property.");
-            }
-            else
+            if (targetVersion != null)
             {
                 WriteObject((int)ArchObj.PrereqNetFw,
                     targetVersion.ToKpUlongVer());
             }
 
-            if (string.IsNullOrEmpty(TargetOsMoniker))
-            {
-                Log.LogMessage(MessageImportance.Low,
-                    "PLGX archive target OS unspecified or invalid; " +
-                    "KP will not check if the platform is running " +
-                    "a specific operating system ('Windows' or 'Unix') " +
-                    "required by the plugin.");
-            }
-            else
+            if (!string.IsNullOrEmpty(TargetOsMoniker))
             {
                 WriteObject((int)ArchObj.TargetOs,
                     TargetOsMoniker);
@@ -214,14 +226,6 @@ namespace PlgxBuildTasks
             {
                 WriteObject((int)ArchObj.PrereqPtrSize,
                     TargetPointerSize.Value);
-            }
-            else
-            {
-                Log.LogMessage(MessageImportance.Low,
-                    "PLGX archive desired pointer size not " +
-                    "specified or invalid; optionally specify a " +
-                    "pointer size (8 or 4) and KP will determine if " +
-                    "the platform supports the requirement.");
             }
 
             if (!string.IsNullOrEmpty(PreProc))
@@ -234,9 +238,10 @@ namespace PlgxBuildTasks
                 WriteObject((int)ArchObj.PostProc, PostProc);
             }
 
-            WriteObject((int)ArchObj.BeginContent, Array.Empty<byte>());
+            WriteObject((int)ArchObj.BeginContent, new byte[] { });
 
-            Log.LogMessage("Begin adding PLGX archive items.");
+            Log.LogMessage(MessageImportance.Low,
+                "Streaming PLGX archive items:");
 
             m_inProgress = true;
         }
@@ -292,7 +297,7 @@ namespace PlgxBuildTasks
         {
             EnsureStreaming();
 
-            Log.LogMessage($"    {destPath}");
+            Log.LogMessage(MessageImportance.Low, $"  {destPath}");
 
             m_out.Write((ushort)ArchObj.File);
 
@@ -317,7 +322,7 @@ namespace PlgxBuildTasks
                 source.CopyTo(gz);
             }
 
-            WriteObject((int)FileObj.Eof, Array.Empty<byte>());
+            WriteObject((int)FileObj.Eof, new byte[] { });
 
             // Rewind to file data length field and write it.
             long iEof = m_out.BaseStream.Position;
@@ -347,10 +352,11 @@ namespace PlgxBuildTasks
                 return;
             }
 
-            Log.LogMessage("End adding PLGX archive items.");
+            Log.LogMessage(MessageImportance.Low,
+                $"'{OutputFilePath}' archive closed.");
 
-            WriteObject((int)ArchObj.EndContent, Array.Empty<byte>());
-            WriteObject((int)ArchObj.Eof, Array.Empty<byte>());
+            WriteObject((int)ArchObj.EndContent, new byte[] { });
+            WriteObject((int)ArchObj.Eof, new byte[] { });
 
             m_inProgress = false;
         }

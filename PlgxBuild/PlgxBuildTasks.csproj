@@ -1,17 +1,59 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <AssemblyName>PlgxBuildTasks</AssemblyName>
+    <TargetFrameworks>netstandard2.0;net45;net472</TargetFrameworks>
   </PropertyGroup>
 
+  <!-- NuGet pack properties -->
+  <PropertyGroup>
+    <PackageId>$(AssemblyName)</PackageId>
+    <PackageVersion>0.1.0-alpha</PackageVersion>
+    <Authors></Authors>
+    <Title>KeePass plugin PLGX generator</Title>
+    <Description>KeePass PLGX archive creation from MSBuild project products.</Description>
+    <Copyright>Copyright @  2021</Copyright>
+    <PackageProjectUrl></PackageProjectUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <RepositoryUrl></RepositoryUrl>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageTags>keepass;keepass2;plugins;plgx</PackageTags>
+    <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)..\nupkg\</PackageOutputPath>
+  </PropertyGroup>
+
+  <!-- See https://github.com/nuget/home/issues/8583, etc. -->
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <!-- Reclassify the .targets file for NuGet pack. -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Framework" Version="15.1.548">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.1.548">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
+    <None Remove="PlgxBuildTasks.targets" />
+    <Content Include="PlgxBuildTasks.targets">
+      <Pack>true</Pack>
+      <PackagePath>build/netstandard2.0;build/net45;build/net472</PackagePath>
+    </Content>
+  </ItemGroup>
+  
+  <!-- Make 'MSBuild t:pack' work right. -->
+  <ItemGroup>
+    <None Remove="_._" />
+    <Content Include="_._">
+      <Pack>true</Pack>
+      <PackagePath>lib/netstandard2.0;lib/net45;lib/net472</PackagePath>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' or '$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Build.Framework" Version ="15.1.548" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.1.548" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45'">
+    <PackageReference Include="Microsoft.Build.Framework" Version ="14.3.0" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" />
   </ItemGroup>
 
 </Project>

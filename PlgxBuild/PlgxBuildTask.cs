@@ -1,4 +1,24 @@
-﻿using Microsoft.Build.Framework;
+﻿/*
+    This file is part of the PlgxBuildTasks distribution:
+    https://github/walterpg/PlgxBuildTasks
+
+    Copyright(C) 2021 Walter Goodwin
+
+    PlgxBuildTasks is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    PlgxBuildTasks is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with PlgxBuildTasks.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+using Microsoft.Build.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,6 +43,9 @@ namespace PlgxBuildTasks
 
         [Required]
         public string AssemblyName { get; set; }
+
+        [Required]
+        public string ArchiveBaseFileName { get; set; }
 
         [Required]
         public string ProjectFileFullPath { get; set; }
@@ -66,7 +89,6 @@ namespace PlgxBuildTasks
         string PlgxTempFolder { get; set; }
 
         string ProjectFileFolder => Path.GetDirectoryName(ProjectFileFullPath);
-        string ProjectFileName => Path.GetFileName(ProjectFileFullPath);
 
         IEnumerable<ITaskItem> EmbeddedResourceWithoutSatelliteResource
         {
@@ -282,7 +304,12 @@ namespace PlgxBuildTasks
                 CopyItemToTemp(xw, i.ItemSpec, ProjectReferencesFolderName +
                     Path.DirectorySeparatorChar, bCopyToSubDirRoot: false);
             }
-            AddItems("Reference", ResolvedReference, xw, resolveInclude,
+            IEnumerable<ITaskItem> nonKeePassRefs
+                = ResolvedReference.Where(
+                    r => !"KeePass.exe".Equals(
+                        Path.GetFileName(r.ItemSpec),
+                            StringComparison.OrdinalIgnoreCase));
+            AddItems("Reference", nonKeePassRefs, xw, resolveInclude,
                 adornAndCopy);
         }
 
@@ -442,21 +469,21 @@ namespace PlgxBuildTasks
 
         bool GenerateFiles()
         {
+            string newProjectFile = AssemblyName + ".csproj";
             string newProjectPath
-                = Path.Combine(PlgxTempFolder, ProjectFileName);
-            string baseFileName
-                = Path.GetFileNameWithoutExtension(ProjectFileName);
+                = Path.Combine(PlgxTempFolder, newProjectFile);
             using (m_writer = new KpPlgxWriter(Log)
             {
-                BaseFileName = baseFileName,
+                BaseFileName = AssemblyName,
                 FileGuid = new Guid(),
                 TargetNetFramework = TargetNetFramework,
                 TargetOsMoniker = TargetOsMoniker,
                 TargetPointerSize = TargetPointerSize,
+                TargetKpVersionString = TargetKpVersion,
                 PreProc = BeforeCommand,
                 PostProc = ModifiedAfterCommand,
                 OutputFilePath = PlgxFileFolder +
-                    Path.DirectorySeparatorChar + baseFileName + ".plgx",
+                    ArchiveBaseFileName + ".plgx",
             })
             using (XmlWriter xw = XmlWriter.Create(newProjectPath,
                 new XmlWriterSettings()
@@ -472,7 +499,7 @@ namespace PlgxBuildTasks
                 if (BuildPlgx(xw))
                 {
                     xw.Close();
-                    m_writer.AddFile(newProjectPath, ProjectFileName);
+                    m_writer.AddFile(newProjectPath, newProjectFile);
                 }
             }
             return !Log.HasLoggedErrors;
