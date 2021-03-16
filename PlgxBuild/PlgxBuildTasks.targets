@@ -118,21 +118,21 @@
   <!--
     Define default value for directory path of copied references.
   -->
-  <Target Name="PlgxGetProjectReferencesFolderName"
+  <Target Name="PlgxGetReferencesArchivedFolderName"
       Condition=" '$(PlgxProjectReferencesFolderName)' == '' "
-      Outputs="PlgxProjectReferencesFolderName">
+      Outputs="PlgxReferencesArchivedFolderName">
     <PropertyGroup>
-      <PlgxProjectReferencesFolderName>___PLGX_References</PlgxProjectReferencesFolderName>
+      <PlgxReferencesArchivedFolderName>___PLGX_References</PlgxReferencesArchivedFolderName>
     </PropertyGroup>
   </Target>
   
   <!--
     Define default value for directory path of satellite assemblies.
   -->
-  <Target Name="PlgxGetProjectSatelliteResourcesFolderName" Condition=" '$(PlgxProjectSatelliteAssembliesFolderName)' == '' "
-      Outputs="PlgxProjectSatelliteAssembliesFolderName">
+  <Target Name="PlgxGetSatelliteAssembliesArchivedFolderName" Condition=" '$(PlgxSatelliteAssembliesArchivedFolderName)' == '' "
+      Outputs="PlgxSatelliteAssembliesArchivedFolderName">
     <PropertyGroup>
-      <PlgxProjectSatelliteAssembliesFolderName>___PLGX_Satellites</PlgxProjectSatelliteAssembliesFolderName>
+      <PlgxSatelliteAssembliesArchivedFolderName>___PLGX_Satellites</PlgxSatelliteAssembliesArchivedFolderName>
     </PropertyGroup>
   </Target>
 
@@ -145,8 +145,8 @@
 
   <PropertyGroup>
     <PlgxBuildDependsOn>
-      PlgxGetProjectReferencesFolderName;
-      PlgxGetProjectSatelliteResourcesFolderName;
+      PlgxGetReferencesArchivedFolderName;
+      PlgxGetSatelliteAssembliesArchivedFolderName;
       PlgxValidateProductName;
       PlgxGetUseCompiledResource;
       PlgxGetAssemblyName;
@@ -164,8 +164,8 @@
   
   <Target Name="PlgxBuild" DependsOnTargets="$(PlgxBuildDependsOn)">
     <PlgxBuildTask PlgxFileFolder="$(PlgxOutputFolder)"
-        ProjectReferencesFolderName="$(PlgxProjectReferencesFolderName)"
-        ProjectSatelliteAssembliesFolderName="$(PlgxProjectSatelliteAssembliesFolderName)"
+        ProjectReferencesFolderName="$(PlgxReferencesArchivedFolderName)"
+        ProjectSatelliteAssembliesFolderName="$(PlgxSatelliteAssembliesArchivedFolderName)"
         AssemblyName="$(PlgxAssemblyName)"
         ArchiveBaseFileName="$(PlgxArchiveFileName)"
         EmbeddedResource="@(EmbeddedResource)"
