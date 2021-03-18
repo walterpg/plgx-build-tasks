@@ -21,40 +21,25 @@
   -->
 
   <!--
-    <PlgxArchiveFileName> can be specified to override the base
-    file name of the .PLGX archive.
+    By default, run the PlgxBuild target on Release builds.
   -->
-  <Target Name="PlgxGetArchiveFileName"
-          Condition=" '$(PlgxArchiveFileName)' == '' "
-          Outputs="PlgxArchiveFileName"
-  >
-    <PropertyGroup>
-      <PlgxArchiveFileName>$(AssemblyName)</PlgxArchiveFileName>
-    </PropertyGroup>
-  </Target>
+  <PropertyGroup Condition=" '$(GeneratePlgx)' == '' and '$(Configuration)' == 'Release' ">
+    <GeneratePlgx>true</GeneratePlgx>
+  </PropertyGroup>
 
   <!--
-    <PlgxOuputFolder> specifies the directory for the generated .PLGX
-    file.
+    Define default value for directory path of copied references.
   -->
-  <Target Name="PlgxGetOutputFolder" Condition=" '$(PlgxOuputFolder)' == '' "
-      Outputs="$(PlgxOutputFolder)">
-    <PropertyGroup>
-      <PlgxOutputFolder>$(MSBuildProjectDirectory)\$(OutputPath)</PlgxOutputFolder>
-    </PropertyGroup>
-  </Target>
+  <PropertyGroup Condition=" '$(PlgxProjectReferencesFolderName)' == '' ">
+    <PlgxReferencesArchivedFolderName>___PLGX_References</PlgxReferencesArchivedFolderName>
+  </PropertyGroup>
 
   <!--
-    <PlgxAssemblyName> specifies the name of the plugin assembly (no .dll
-    suffix) and namespace.  If not specified, this value defaults to the
-    <AssemblyName> MSBuild property value. 
+    Define default value for directory path of satellite assemblies.
   -->
-  <Target Name="PlgxGetAssemblyName" Condition=" '$(PlgxAssemblyName)' == '' "
-      Outputs="$(PlgxAssemblyName)">
-    <PropertyGroup>
-      <PlgxAssemblyName>$(AssemblyName)</PlgxAssemblyName>
-    </PropertyGroup>
-  </Target>
+  <PropertyGroup Condition=" '$(PlgxSatelliteAssembliesArchivedFolderName)' == '' ">
+    <PlgxSatelliteAssembliesArchivedFolderName>___PLGX_Satellites</PlgxSatelliteAssembliesArchivedFolderName>
+  </PropertyGroup>
 
   <!--
     <PlgxUseCompiledResource> allows optional use of MSBuild-generated resources
@@ -62,33 +47,84 @@
     in the .PLGX and improves the efficiency of KeePass' compilation of the
     plugin.  Defaults to 'false'.
   -->
-  <Target Name="PlgxGetUseCompiledResource"
-      Outputs="PlgxUseCompiledResource">
-    <Error Condition=" '$(PlgxUseCompiledResource)' != '' and '$(PlgxUseCompiledResource.ToUpper())' != 'TRUE' and '$(PlgxUseCompiledResource.ToUpper())' != 'FALSE' "
+  <PropertyGroup Condition=" '$(PlgxUseCompiledResource)' == '' ">
+    <PlgxUseCompiledResource>false</PlgxUseCompiledResource>
+  </PropertyGroup>
+
+  <!--
+    <PlgxTargetNetFramework> specifies the .NET Framework
+    "prerequisite" like the "plgx-prereq-fw:" KeePass command-line
+    parameter.  Defaults to the build target framework.
+  -->
+  <PropertyGroup Condition=" '$(PlgxTargetNetFramework)' == '' ">
+    <PlgxTargetNetFramework>$(TargetFrameworkVersion)</PlgxTargetNetFramework>
+  </PropertyGroup>
+  
+  <!--
+    <PlgxTargetOs> specifies the operating system "prerequisite", like
+    the "plgx-prereq-os:" KeePass command-line parameter. Defaults to
+    'Windows'.
+  -->
+  <PropertyGroup Condition=" '$(PlgxTargetOs)' == '' ">
+    <PlgxTargetOs>Windows</PlgxTargetOs>
+  </PropertyGroup>
+
+  <!--
+    <PlgxArchiveFileName> can be specified to override the base
+    file name of the .PLGX archive.
+  -->
+  <PropertyGroup Condition=" '$(PlgxArchiveFileName)' == '' ">
+    <PlgxArchiveFileName>$(AssemblyName)</PlgxArchiveFileName>
+  </PropertyGroup>
+
+  <!--
+    <PlgxOuputFolder> specifies the directory for the generated .PLGX
+    file.
+  -->
+  <PropertyGroup Condition=" '$(PlgxOuputFolder)' == '' ">
+    <PlgxOutputFolder>$(MSBuildProjectDirectory)\$(OutputPath)</PlgxOutputFolder>
+  </PropertyGroup>
+
+  <!--
+    <PlgxAssemblyName> specifies the name of the plugin assembly (no .dll
+    suffix) and namespace.  If not specified, this value defaults to the
+    <AssemblyName> MSBuild property value. 
+  -->
+  <PropertyGroup Condition=" '$(PlgxAssemblyName)' == '' ">
+    <PlgxAssemblyName>$(AssemblyName)</PlgxAssemblyName>
+  </PropertyGroup>
+
+  <!--
+    Check setting of PlgxUseCompiledResource, and when set 'true', warn
+    if the build's target framework does not match the manifest
+    (PlgxTargetNetFramework).
+  -->
+  <Target Name="PlgxValidateUseCompiledResource"
+          Condition=" '$(PlgxUseCompiledResource)' != '' ">
+    <Error Condition=" '$(PlgxUseCompiledResource.ToUpper())' != 'TRUE' and '$(PlgxUseCompiledResource.ToUpper())' != 'FALSE' "
          Text="Invalid value for &lt;PlgxUseCompiledResource&gt; property; the value should be 'true' or 'false'."/>
-    <PropertyGroup Condition=" '$(PlgxUseCompiledResource)' == '' ">
-      <PlgxUseCompiledResource>false</PlgxUseCompiledResource>
-    </PropertyGroup>
+    <Warning Condition=" '$(PlgxUseCompiledResource.ToUpper())' == 'TRUE' and $(PlgxTargetNetFramework) != '$(TargetFrameworkVersion)' " 
+         Text="Archiving .RESOURCE files targeting v$(TargetFrameworkVersion), but the .PLGX manifest targets v$(PlgxTargetNetFramework)."/>
   </Target>
 
   <!--
-    <PlgxTargetOs> is used to specify the operating system "prerequiste", like
-    the "plgx-prereq-os:" KeePass command-line parameter.
+    <PlgxTargetOs> if specified can have one of two values.
   -->
-  <Target Name="PlgxGetTargetOs"
+  <Target Name="PlgxValidateTargetOs"
       Condition=" '$(PlgxTargetOs)' != '' ">
     <ErrorLog Condition=" '$(PlgxTargetOs.ToUpper())' != 'UNIX' and '$(PlgxTargetOs.ToUpper())' != 'WINDOWS' "
-      Text="&lt;PlgxTargetOs&gt; value not valid.  Currently, KeePass only recognizes the values 'Windows', 'Unix', or the empty string."/>
+      Text="Optional &lt;PlgxTargetOs&gt; value not valid.  Currently, KeePass only recognizes the values 'Windows' or 'Unix'."/>
   </Target>
 
   <!--
-    <PlgxTargetPtrSize> is used to specify the pointer size "prerequiste", like
-    the "plgx-prereq-ptr:" KeePass command-line parameter.
+    <PlgxTargetPtrSize> is used to specify the pointer size
+    "prerequisite", like the "plgx-prereq-ptr:" KeePass command-line
+    parameter.  Validate if set.
   -->
-  <Target Name="PlgxGetTargetPtrSize"
+  <Target Name="PlgxValidateTargetPtrSize"
       Condition=" '$(PlgxTargetPtrSize)' != '' ">
     <Error Condition=" '$(PlgxTargetPtrSize)' != '8' and '$(PlgxTargetPtrSize)' != '4' "
-      Text="&lt;PlgxTargetPtrSize&gt; value invalid.  If specified, the value must be either '4' or '8'."/>
+      Text="Optional &lt;PlgxTargetPtrSize&gt; value invalid.  Currently, KeePass only recognizes the values '4' or '8'."/>
   </Target>
 
   <!--
@@ -99,70 +135,41 @@
   <Target Name="PlgxValidateProductName" 
       Condition=" '$(GenerateAssemblyInfo)' == 'true' and '$(Product)' != '' ">
     <Error Condition=" '$(Product)' != 'KeePass Plugin' "
-      Text="&lt;Product&gt; property not set to 'KeePass Plugin', so KeePass will not load this plugin. Either set the property in the project, or disable AssemblyInfo.cs generation and explicitly code AssemblyProductAttribute with 'KeePass Plugin'."/>
+      Text="&lt;Product&gt; property not set to 'KeePass Plugin', so KeePass will not load this plugin. Either set the property in the project, or disable AssemblyInfo.cs generation and explicitly set 'KeePass Plugin' in the AssemblyProductAttribute constructor."/>
   </Target>
   
-  <!--
-    <PlgxTargetNetFramework> can be specified to override the target
-    framework version manifested in the .PLGX archive.
-  -->
-  <Target Name="PlgxGetTargetNetFramework"
-          Condition=" '$(PlgxTargetNetFramework)' == '' "
-          Outputs="PlgxTargetNetFramework"
-  >
-    <PropertyGroup>
-      <PlgxTargetNetFramework>$(TargetFrameworkVersion)</PlgxTargetNetFramework>
-    </PropertyGroup>
-  </Target>
-  
-  <!--
-    Define default value for directory path of copied references.
-  -->
-  <Target Name="PlgxGetReferencesArchivedFolderName"
-      Condition=" '$(PlgxProjectReferencesFolderName)' == '' "
-      Outputs="PlgxReferencesArchivedFolderName">
-    <PropertyGroup>
-      <PlgxReferencesArchivedFolderName>___PLGX_References</PlgxReferencesArchivedFolderName>
-    </PropertyGroup>
-  </Target>
-  
-  <!--
-    Define default value for directory path of satellite assemblies.
-  -->
-  <Target Name="PlgxGetSatelliteAssembliesArchivedFolderName" Condition=" '$(PlgxSatelliteAssembliesArchivedFolderName)' == '' "
-      Outputs="PlgxSatelliteAssembliesArchivedFolderName">
-    <PropertyGroup>
-      <PlgxSatelliteAssembliesArchivedFolderName>___PLGX_Satellites</PlgxSatelliteAssembliesArchivedFolderName>
-    </PropertyGroup>
-  </Target>
-
   <!--
     Extend 'clean' target to remove output file.
   -->
-  <Target Name="PlgxDeleteOutputFile" DependsOnTargets="PlgxGetArchiveFileName;PlgxGetOutputFolder">
+  <Target Name="PlgxDeleteOutputFile">
     <Delete Files="$(PlgxOutputFolder)$(PlgxArchiveFileName).plgx" />
   </Target>
 
   <PropertyGroup>
     <PlgxBuildDependsOn>
-      PlgxGetReferencesArchivedFolderName;
-      PlgxGetSatelliteAssembliesArchivedFolderName;
       PlgxValidateProductName;
-      PlgxGetUseCompiledResource;
-      PlgxGetAssemblyName;
-      PlgxGetOutputFolder;
-      PlgxGetTargetOs;
-      PlgxGetTargetPtrSize;
-      PlgxGetTargetNetFramework;
-      PlgxGetArchiveFileName;
+      PlgxValidateUseCompiledResource;
+      PlgxValidateTargetOs;
+      PlgxValidateTargetPtrSize;
       Build
     </PlgxBuildDependsOn>
-    <CleanDependsOn>PlgxDeleteOutputFile;$(CleanDependsOn)</CleanDependsOn>
+    <PlgxBuildInputs>
+      $(MSBuildAllProjects);
+      @(Compile);
+      @(EmbeddedResource);
+      @(None);
+      @(Content);
+      @(Reference);
+    </PlgxBuildInputs>
+    <CleanDependsOn>$(CleanDependsOn);PlgxDeleteOutputFile;</CleanDependsOn>
   </PropertyGroup>
 
   <UsingTask TaskName="PlgxBuildTask"  AssemblyFile="$(PlgxBuildTasksDir)PlgxBuildTasks.dll" />
   
-  <Target Name="PlgxBuild" DependsOnTargets="$(PlgxBuildDependsOn)">
+  <Target Name="PlgxBuild" DependsOnTargets="$(PlgxBuildDependsOn)" AfterTargets="Build"
+          Inputs="$(PlgxBuildInputs)"
+          Outputs="$(PlgxOutputFolder)$(PlgxArchiveFileName).plgx"
+          Condition=" '$(GeneratePlgx)' == 'true'">
     <PlgxBuildTask PlgxFileFolder="$(PlgxOutputFolder)"
         ProjectReferencesFolderName="$(PlgxReferencesArchivedFolderName)"
         ProjectSatelliteAssembliesFolderName="$(PlgxSatelliteAssembliesArchivedFolderName)"

@@ -22,59 +22,86 @@
 
   <PropertyGroup>
     <AssemblyName>PlgxBuildTasks</AssemblyName>
-    <TargetFrameworks>netstandard2.0;net45;net472</TargetFrameworks>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
+    <AssemblyProduct>PLGX Build Tasks</AssemblyProduct>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>snkey.pfx</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
   </PropertyGroup>
 
   <!-- NuGet pack properties -->
   <PropertyGroup>
     <PackageId>$(AssemblyName)</PackageId>
     <PackageVersion>0.1.0-alpha</PackageVersion>
-    <Authors></Authors>
+    <Authors>walterpg</Authors>
+    <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
     <Title>KeePass plugin PLGX generator</Title>
     <Description>KeePass PLGX archive creation from MSBuild project products.</Description>
-    <Copyright>Copyright @  2021</Copyright>
+    <Copyright>Copyright @  2021 Walter Goodwin</Copyright>
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
-    <PackageProjectUrl></PackageProjectUrl>
-    <PackageLicenseUrl></PackageLicenseUrl>
-    <RepositoryUrl></RepositoryUrl>
+    <PackageProjectUrl>https://github.com/walterpg/plgx-build-tasks</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/walterpg/plgx-build-tasks.git</RepositoryUrl>
     <PackageReleaseNotes></PackageReleaseNotes>
     <PackageTags>keepass;keepass2;plugins;plgx</PackageTags>
-    <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)..\nupkg\</PackageOutputPath>
+    <PackageOutputPath>$(MSBuildProjectDirectory)\bin\$(Configuration)\nupkg\</PackageOutputPath>
+    <NuspecFile>package.nuspec</NuspecFile>
+    <NuspecBasePath>$(MSBuildProjectDirectory)</NuspecBasePath>
   </PropertyGroup>
-
-  <!-- See https://github.com/nuget/home/issues/8583, etc. -->
+  
+  <!-- Publish task props -->
   <PropertyGroup>
-    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <IntermediatePackDir>$(MSBuildProjectDirectory)\bin\$(Configuration)\publish\</IntermediatePackDir>
+    <PublishDir>$(IntermediatePackDir)$(TargetFramework)\</PublishDir>
   </PropertyGroup>
 
-  <!-- Reclassify the .targets file for NuGet pack. -->
+  <!-- Reclassify the .targets file -->
   <ItemGroup>
     <None Remove="PlgxBuildTasks.targets" />
-    <Content Include="PlgxBuildTasks.targets">
-      <Pack>true</Pack>
-      <PackagePath>build/netstandard2.0;build/net45;build/net472</PackagePath>
-    </Content>
+    <Content Include="PlgxBuildTasks.targets" />
   </ItemGroup>
   
-  <!-- Make 'MSBuild t:pack' work right. -->
   <ItemGroup>
-    <None Remove="_._" />
-    <Content Include="_._">
-      <Pack>true</Pack>
-      <PackagePath>lib/netstandard2.0;lib/net45;lib/net472</PackagePath>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' or '$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Build.Framework" Version ="15.1.548" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="15.1.548" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.1.548" />
   </ItemGroup>
+  
+  <Target Name="SetNuspecProps" BeforeTargets="GenerateNuspec">
+    <PropertyGroup>
+      <NuspecProperties>
+        $(NuspecProperties);
+        id=$(PackageId);
+        licenseExpr=$(PackageLicenseExpression);
+        version=$(PackageVersion);
+        authors=$(Authors);
+        buildOutTarget=$(BuildOutputTargetFolder);
+        title=$(Title);
+        description=$(Description);
+        copyright=$(Copyright);
+        repository=$(RepositoryUrl);
+        project=$(PackageProjectUrl);
+        releaseNotes=$(PackageReleaseNotes);
+        tags=$(PackageTags.Replace(';', ' '));
+        publishDir=$([MSBuild]::NormalizeDirectory($(IntermediatePackDir)));
+        buildFramework=$(TargetFramework);
+      </NuspecProperties>
+    </PropertyGroup>
+  </Target>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45'">
-    <PackageReference Include="Microsoft.Build.Framework" Version ="14.3.0" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" />
-  </ItemGroup>
+  <Target Name="PublishPlgxTasks" AfterTargets="SetNuspecProps">
+    <ItemGroup>
+      <TaskTargetFramework Include="$(TargetFramework)" />
+    </ItemGroup>
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Publish"
+             Properties="TargetFramework=%(TaskTargetFramework.Identity)" />
+  </Target>
+  
+  <!-- clean up -->
+  <Target Name="RemovePackageDirs" AfterTargets="Clean">
+    <RemoveDir Directories="$(PackageOutputPath).;$(IntermediatePackDir)."/>
+  </Target>
 
 </Project>

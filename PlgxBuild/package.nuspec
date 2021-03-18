@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>$id$</id>
+    <license type="expression">$licenseExpr$</license>
+    <version>$version$</version>
+    <authors>$authors$</authors>
+    <title>$title$</title>
+    <description>$description$</description>
+    <copyright>$copyright$</copyright>
+    <releaseNotes>$releaseNotes$</releaseNotes>
+    <projectUrl>$project$</projectUrl>
+    <repository type="git" url="$repository$" />
+    <tags>$tags$</tags>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+  </metadata>
+  <files>
+    <file src="PlgxBuildTasks.targets" target="$buildOutTarget$"/>
+    <file src="$publishDir$\$buildFramework$\**\*" target="$buildOutTarget$"/>
+  </files>
+</package>
