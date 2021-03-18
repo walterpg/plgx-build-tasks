@@ -23,11 +23,11 @@
   <PropertyGroup>
     <AssemblyName>PlgxBuildTasks</AssemblyName>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
-    <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
+    <FileVersion>0.1.0.0</FileVersion>
     <AssemblyProduct>PLGX Build Tasks</AssemblyProduct>
     <TargetFramework>netstandard2.0</TargetFramework>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>snkey.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>snkey.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
@@ -52,7 +52,7 @@
     <NuspecBasePath>$(MSBuildProjectDirectory)</NuspecBasePath>
   </PropertyGroup>
   
-  <!-- Publish task props -->
+  <!-- 'build' publish task props -->
   <PropertyGroup>
     <IntermediatePackDir>$(MSBuildProjectDirectory)\bin\$(Configuration)\publish\</IntermediatePackDir>
     <PublishDir>$(IntermediatePackDir)$(TargetFramework)\</PublishDir>
@@ -91,6 +91,8 @@
     </PropertyGroup>
   </Target>
 
+  <!-- Spray the task assembly and its dependencies into intermediate
+   'build' directory prior to 'pack'. -->
   <Target Name="PublishPlgxTasks" AfterTargets="SetNuspecProps">
     <ItemGroup>
       <TaskTargetFramework Include="$(TargetFramework)" />
@@ -101,7 +103,7 @@
   
   <!-- clean up -->
   <Target Name="RemovePackageDirs" AfterTargets="Clean">
-    <RemoveDir Directories="$(PackageOutputPath).;$(IntermediatePackDir)."/>
+    <RemoveDir Directories="$(PackageOutputPath).;$(IntermediatePackDir)." />
   </Target>
 
 </Project>

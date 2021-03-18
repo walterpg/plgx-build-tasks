@@ -14,7 +14,7 @@ The hope is to encourage new plugin development, and help existing plugin author
 * [PlgxTool Compatible Features](#plgxtool-compatible-features)
 * [Missing PlgxTool Features](#plgxtool-incompatibility)
 * [Future Enhancements](#project-todos)
-* [Customization](#next-steps)
+* [Customization](#likely-next-steps)
 * [.PLGX Creation Properties](#properties)
 
 ---
@@ -71,16 +71,16 @@ More info to come.
 
 2. Run a release build of the project.  If all goes well, a distributable .PLGX file should be copied to the output directory.  To customize the build, read on.
 
-#### Next Steps
+#### Likely Next Steps
 
-3. By default, the `GeneratePlgx` property is set to create the .PLGX file after a successful release build, as shown below. Optionally modify the `GeneratePlgx` property in your project file if desired. When set `true`, the `PlgxBuild` task is run after a successful build.
+3. By default, the `GeneratePlgx` property is set to create the .PLGX file after a successful release build, *precisely* as shown below. Optionally modify the `GeneratePlgx` property in your project file if desired. When set `true`, the `PlgxBuild` task is run after a successful build.
 ```
   <PropertyGroup Condition=" '$(GeneratePlgx)' == '' and '$(Configuration)' == 'Release' ">
     <GeneratePlgx>true</GeneratePlgx>
   </PropertyGroup>
 ```
 
-4. To exclude certain project items from the .PLGX, such as certain `<None>` or `<Content>` files, use the `<ExcludeFromPlgx>` metadata tag in the XML content of the item.  For example:
+4. To exclude project items from the .PLGX, such as certain `<None>` or `<Content>` files, use the `<ExcludeFromPlgx>` metadata tag in the XML content of the item.  For example:
 ```
   <None Include="MyTemplate.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
