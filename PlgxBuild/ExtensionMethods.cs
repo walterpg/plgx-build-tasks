@@ -1,6 +1,6 @@
 ﻿/*
     This file is part of the PlgxBuildTasks distribution:
-    https://github/walterpg/PlgxBuildTasks
+    https://github.com/walterpg/plgx-build-tasks
 
     Copyright(C) 2021 Walter Goodwin
 
