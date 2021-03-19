@@ -1,9 +1,8 @@
 
 ## PLGX Build Tasks
-The MSBuild task in this package uses build items, item metadata and a "clean room" implementation of the [KeePass 2.x](https://keepass.info) archive creation utility to generate .PLGX files as a C# plugin build product.  This was inspired by the general purpose [
-KeePassPluginDevTools](https://github.com/dlech/KeePassPluginDevTools) package, a.k.a. [**PlgxTool**](https://www.nuget.org/packages/PlgxTool).
+The MSBuild task in this package uses build items, item metadata and a "clean room" implementation of the [KeePass 2.x](https://keepass.info) archive creation utility to generate .PLGX files as a plugin project's build product.  This was inspired by and partially mimics the [KeePassPluginDevTools](https://github.com/dlech/KeePassPluginDevTools) package, a.k.a. [**PlgxTool**](https://www.nuget.org/packages/PlgxTool).
 
-So why is a new tool necessary?  Primarily, development flexibility.  While the strict [coding requirements](https://keepass.info/help/v2_dev/plg_index.html) for KeePass plugins are well defined, new build environments such as the [`dotnet` CLI](https://docs.microsoft.com/en-us/dotnet/core/install/windows), are changing the way developers create, test, and release .NET software. Also, by fully integrating .PLGX production within MSBuild, new features leveraging intermediate build products are achievable, such as localization resource deployment.
+So....why??  Primarily for development flexibility.  While the strict [coding requirements](https://keepass.info/help/v2_dev/plg_index.html) for KeePass plugins are well defined, new build environments such as the [`dotnet` CLI](https://docs.microsoft.com/en-us/dotnet/core/install/windows) are welcome changes to old-school .NET development. Also, by fully integrating .PLGX production within MSBuild, new features leveraging intermediate build products are achievable, such as localization resource deployment.
 
 The hope is to encourage new plugin development, and help existing plugin authors migrate to new, perhaps improved tooling. 
 
@@ -21,29 +20,29 @@ The hope is to encourage new plugin development, and help existing plugin author
 
 #### Requirements
 
-* A .NET Framework development environment including MSBuild and C#, such as Visual Studio or `dotnet` CLI.
+* A .NET Framework development environment including MSBuild v15 or later, such as Visual Studio 2017 or `dotnet` CLI.
 * The .NET SDK or targeting pack supporting your plugin's target framework.
 
-The software has been tested thoroughly with Visual Studio 2019, and .NET 5 development tools, with `net472` and `net45` TFMs.  MSBuild v15 or higher is required for using `dotnet` CLI.
+The software has been tested thoroughly with Visual Studio 2019 Community, and .NET 5 development tools, with `net472` and `net45` TFMs.  And only on Windows. 
 
 #### Background
 
-[.PLGX files](https://keepass.info/help/v2_dev/plg_index.html#plgx) are an installation media file format often distributed by plugin providers as recommended by KeePass. Traditionally, .PLGX archives contain the C# source code of the plugin, optional WinForms-based resources, non-framework assembly dependencies, and a copy of the plugin's C# project file.  When KeePass loads a new plugin, it extracts the contents of the .PLGX archive, reads select portions of its C# project file, and invokes the installation target's .NET Framework C# compiler to create and install the plugin assembly.  This is done "on the fly", usually without user intervention.  Ostensibly, this convention ensures that the plugin is compliant with the interface and runtime characteristics of the installed version of KeePass. Further, KeePass has control of a central "cache" of plugins installed on the target machine via .PLGX. 
+[.PLGX files](https://keepass.info/help/v2_dev/plg_index.html#plgx) are an installation media file format often distributed by plugin providers as recommended by KeePass. Traditionally, .PLGX archives contain the source code files of the plugin, optional WinForms-based resources, non-framework assembly dependencies, and a copy of the plugin's ".csproj" project file.  When KeePass loads a new plugin, it extracts the contents of the .PLGX archive, reads select portions of its project file, and invokes the installation target's .NET Framework C# compiler to create and install the plugin assembly.  This is done "on the fly", usually without user intervention.  Ostensibly, this convention ensures that the plugin is compliant with the interface and runtime characteristics of the installed version of KeePass. Further, the scheme allows KeePass to maintain control of a central "cache" of plugins installed on the target machine. 
 
 Today, KeePass users benefit from [a large collection of useful plugins](https://keepass.info/help/v2/plugins.html).  But while the KeePass v2 plugin interface and the .NET Framework are both now quite mature, with only infrequent and compatibility-conscious changes, .PLGX archive distribution remains a well established regimen within the plugin community.
 
 #### Unique Features of This Tool
 
-* Supports both "SDK" and traditional C# project file types.
+* Supports both [.NET SDK](https://docs.microsoft.com/en-us/dotnet/core/project-sdk/overview#project-files) and traditional .NET Framework project file types.
 * Supports either `<PackageReference>` or `packages.config` NuGet dependencies.
-* Supports deployment of MSBuild-generated, resource-only satellite assemblies, commonly used for localization.
+* Supports deployment of MSBuild-generated, resource-only satellite assemblies, commonly used for localization (Hint: currently, this feature requires you to set the [`<Satellite_ProducName>` property](https://docs.microsoft.com/en-us/visualstudio/msbuild/common-msbuild-project-properties?view=vs-2019#list-of-common-properties-and-parameters) to specify something other than "KeePass Plugin", so KeePass doesn't confuse it with the plugin assembly).
 * Uses MSBuild item and item metadata products, rather than a separate scan of project file contents, to populate the archive.
-* Archives a task-generated, minimal C# project file, rather than a copy of the development project file. The development project file need not match the plugin symbolic name.
-* Generated .PLGX files are often smaller, resulting in a slight improvement of plugin initialization performance.
-* Optionally,`<EmbeddedResource>` items may be archived as pre-complied .RESOURCE files, for a modest boost in initialization performance and reduced .PLGX file size.
+* Archives a task-generated, minimal project file, rather than a copy of the development project file. The development project file name need not match the plugin symbolic name.
+* .PLGX files are almost always smaller.
+* Optionally,`<EmbeddedResource>` items may be archived as pre-complied .RESOURCE files, for a modest boost in initialization performance and further reduced .PLGX file size.
 * Several [MSBuild property extensions](#properties) are defined and can be overridden to customize the output, including archive contents, name, output path, and KeePass .PLGX deployment options.
 * Build-time checks for a few common plugin development pitfalls produce build errors or warnings.
-* `clean` target extension ensures proper removal of .PLGX output.
+* `/t:clean` target extension ensures proper removal of .PLGX output.
 
 #### PlgxTool Compatible Features
 
@@ -59,8 +58,8 @@ Today, KeePass users benefit from [a large collection of useful plugins](https:/
 * Add companion task to produce a .ZIP archive for "portable installation" distributions.
 * Enhance build-time error checks, possibly via Reflection, of the output plugin assembly.
 * Supplement MSBuild project file schema to include targets, properties, and lightweight documentation.
-* Source code "minify" option for even smaller .PLGX files.
-* VSIX extension to provide plugin "starter" project templates (maybe a wizard?) including the NuGet reference and post-build target.
+* Source code "minify" option for yet smaller .PLGX files.
+* VSIX extension to provide plugin "starter" project templates (maybe a wizard?) including the NuGet reference.
 
 #### Quick Start
 
@@ -90,7 +89,13 @@ More info to come.
   </None>
 ```
 
-5. Optionally configure .PLGX output path, name, and other customizations with property extensions (see below).
+5. Optionally configure customizations with [property extensions](#properties).  For example, alter the output path of the .PLGX file:
+```
+  <PropertyGroup>
+    <PlgxArchiveBaseName>$(AssemblyName).$(Version)</PlgxArchiveBaseName>
+    <PlgxOutputFolder>$(MSBuildProjectDirectory)\bin\$(Configuration)\plgx\</PlgxOutputFolder>
+  </PropertyGroup>
+```
 
 #### Properties
 
