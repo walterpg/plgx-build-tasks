@@ -42,7 +42,7 @@ Today, KeePass users benefit from [a large collection of useful plugins](https:/
 * Optionally,`<EmbeddedResource>` items may be archived as pre-complied .RESOURCE files, for a modest boost in initialization performance and further reduced .PLGX file size.
 * Several [MSBuild property extensions](#properties) are defined and can be overridden to customize the output, including archive contents, name, output path, and KeePass .PLGX deployment options.
 * Build-time checks for a few common plugin development pitfalls produce build errors or warnings.
-* `/t:clean` target extension ensures proper removal of .PLGX output.
+* `/t:clean` target extension (tries) to ensure proper removal of .PLGX output.
 
 #### PlgxTool Compatible Features
 
@@ -55,20 +55,18 @@ Today, KeePass users benefit from [a large collection of useful plugins](https:/
 
 #### Project TODOs
 
+* Use the MSBuild "FilesList" item to fix `clean` target issues.
 * Add companion task to produce a .ZIP archive for "portable installation" distributions.
-* Enhance build-time error checks, possibly via Reflection, of the output plugin assembly.
+* Enhance build-time error checks, possibly via Reflection, to ensure the output assembly meets KeePass' ["conventions"](https://keepass.info/help/v2_dev/plg_index.html#conventions).
 * Supplement MSBuild project file schema to include targets, properties, and lightweight documentation.
 * Source code "minify" option for yet smaller .PLGX files.
 * VSIX extension to provide plugin "starter" project templates (maybe a wizard?) including the NuGet reference.
 
 #### Quick Start
 
-1. Add the NuGet reference to [a plugin project](https://keepass.info/plugins.html#testplugin).
-```
-More info to come.
-```
+1. Add the [NuGet package](https://www.nuget.org/packages/PlgxBuildTasks/) reference to [a plugin project](https://keepass.info/plugins.html#testplugin) using a NuGet package management tool of choice (too many to list here).
 
-2. Run a release build of the project.  If all goes well, a distributable .PLGX file should be copied to the output directory.  To customize the build, read on.
+2. Run a release build of the project.  If all [requirements are met](#requirements), a distributable .PLGX file should be copied to the output directory.  To customize the build, read on.
 
 #### Likely Next Steps
 
