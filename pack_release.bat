@@ -18,10 +18,21 @@
 ::  along with PlgxBuildTasks.  If not, see <https://www.gnu.org/licenses/>.
 ::
 
-:: For example:
+:: USAGE:
 ::  pack_release 0.0.0 beta
 :: or
 ::  pack_release 0.0.0
+
+::
+:: Procedure for creating a new package release:
+:: 1) Commit and tag the release, e.g.
+::    `git tag -a v1.0.0-beta -s -m "Version 1.0"`
+:: 2) Push the tag to remote:
+::    `git push origin v1.0.0-beta
+:: 3) Run this script.
+:: 4) Verify the .npkg output in a tool like NuGetPackageExplorer.
+:: 5) Publish to nuget.org.
+::
 
 dotnet build --nologo -c Release --no-incremental -p:VersionPrefix=%1 -p:VersionSuffix=%2
 dotnet pack --nologo --no-build -c Release -p:VersionPrefix=%1 -p:VersionSuffix=%2
