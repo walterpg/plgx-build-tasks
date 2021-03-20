@@ -92,7 +92,7 @@ More info to come.
 5. Optionally configure customizations with [property extensions](#properties).  For example, alter the output path of the .PLGX file:
 ```
   <PropertyGroup>
-    <PlgxArchiveBaseName>$(AssemblyName).$(Version)</PlgxArchiveBaseName>
+    <PlgxArchiveFileName>$(MyAssemblyName)-$(MyVersion)</PlgxArchiveFileName>
     <PlgxOutputFolder>$(MSBuildProjectDirectory)\bin\$(Configuration)\plgx\</PlgxOutputFolder>
   </PropertyGroup>
 ```
@@ -105,7 +105,7 @@ Specify these properties within a `<PropertyGroup>` element of your project file
 
 | Property              | Default value                         | Description                |
 |-----------------------|---------------------------------------|----------------------------|
-| `PlgxArchiveBaseName`   | Base name of the plugin assembly, for example `MyPlugin`.| The name of the output .PLGX file, specified as a base file name (without the .PLGX extension).|
+| `PlgxArchiveFileName`   | Base name of the plugin assembly, for example `MyPlugin`.| The name of the output .PLGX file, specified as a base file name (without the .PLGX extension).|
 | `PlgxOutputFolder`      | The project output folder, `$(OutputPath)`. | The directory where the output .PLGX file will be placed.  Specify as an absolute path or relative to the project file directory.|
 | `PlgxTargetKpVersion`   | No default.                      | Optional. If specified, sets the `--plgx-prereq-kp` option to declare the "minimum" KeePass version supported by the plugin. KeePass only recognizes release numbers given in simple, dotted notation, e.g., "2.09".|
 | `PlgxTargetNetFramework` | The project target framework, `$(TargetFrameworkVersion)`.   | Sets the `--plgx-prereq-net` option to declare the .NET Framework version requirements of the plugin. Valid values are dotted notation .NET Framework version numbers with no prefix. For example, "4.5" or "4.7.2". Set this property to an empty string to omit `--plgx-prereq-net` from the .PLGX manifest. |
