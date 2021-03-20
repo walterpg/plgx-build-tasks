@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>SamplePlugin</AssemblyName>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net45</TargetFramework>
+    <Version>2.20</Version>
+    <FileVersion>2.20.0.0</FileVersion>
+    <Product>KeePass Plugin</Product>
+    <AssemblyTitle>SdkSamplePlugin</AssemblyTitle>
+    <Description>An example plugin for developers that demonstrates how to perform certain operations.</Description>
+    <Copyright>Copyright © 2003-2019 Dominik Reichl</Copyright>
+    <Company>Dominik Reichl</Company>
+    <NeutralLanguage></NeutralLanguage>
+    <PlatformTarget Condition=" '$(PlatformTarget)' == '' ">AnyCPU</PlatformTarget>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DefineConstants>DEBUG;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+    <PackageReference Include="KeePass" Version="2.41.0.38197" />
+  </ItemGroup>
+
+  <Import Project="..\PlgxBuild\PlgxBuild.targets" />
+  <PropertyGroup>
+    <PlgxBuildTasksDir>$(MSBuildThisFileDirectory)..\PlgxBuild\bin\$(Configuration)\netstandard2.0\</PlgxBuildTasksDir>
+    <PlgxTargetKpVersion>2.41</PlgxTargetKpVersion>
+  </PropertyGroup>
+  <Target Name="PlgxTarget" AfterTargets="Build">
+    <CallTarget Targets="PlgxBuild" />
+  </Target>
+
+</Project>

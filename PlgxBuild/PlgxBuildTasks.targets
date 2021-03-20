@@ -137,18 +137,26 @@
     <Error Condition=" '$(Product)' != 'KeePass Plugin' "
       Text="&lt;Product&gt; property not set to 'KeePass Plugin', so KeePass will not load this plugin. Either set the property in the project, or disable AssemblyInfo.cs generation and explicitly set 'KeePass Plugin' in the AssemblyProductAttribute constructor."/>
   </Target>
+
+  <Target Name="SetPlgxOutputPath"
+          DependsOnTargets="EnsurePlgxOutputFolder;EnsurePlgxArchiveFileName"
+          Outputs="PlgxOutputPath">
+    <PropertyGroup>
+      <PlgxOutputPath>$(PlgxOutputFolder)$(PlgxArchiveFileName).plgx</PlgxOutputPath>
+    </PropertyGroup>
+  </Target>
   
   <!--
     Extend 'clean' target to remove output file.
   -->
-  <Target Name="PlgxDeleteOutputFile">
-    <Delete Files="$(PlgxOutputFolder)$(PlgxArchiveFileName).plgx" />
+  <Target Name="PlgxDeleteOutputFile"
+          DependsOnTargets="SetPlgxOutputPath">
+    <Delete Files="$(PlgxOutputPath)" />
   </Target>
 
   <PropertyGroup>
     <PlgxBuildDependsOn>
-      EnsurePlgxArchiveFileName;
-      EnsurePlgxOutputFolder;
+      SetPlgxOutputPath;
       EnsurePlgxTargetNetFramework;
       PlgxValidateProductName;
       PlgxValidateUseCompiledResource;
@@ -171,7 +179,7 @@
   
   <Target Name="PlgxBuild" DependsOnTargets="$(PlgxBuildDependsOn)" AfterTargets="Build"
           Inputs="$(PlgxBuildInputs)"
-          Outputs="$(PlgxOutputFolder)$(PlgxArchiveFileName).plgx"
+          Outputs="$(PlgxOutputPath)"
           Condition=" '$(GeneratePlgx)' == 'true'">
     <PlgxBuildTask PlgxFileFolder="$(PlgxOutputFolder)"
         ProjectReferencesFolderName="$(PlgxReferencesArchivedFolderName)"
@@ -193,7 +201,7 @@
         UseCompiledResource="$(PlgxUseCompiledResource)"
     />
     <Message Importance="high"
-        Text="$(AssemblyName) -> $(PlgxOutputFolder)$(PlgxArchiveFileName).plgx"
+        Text="$(AssemblyName) -> $(PlgxOutputPath)"
     /> 
   </Target>
 </Project>
