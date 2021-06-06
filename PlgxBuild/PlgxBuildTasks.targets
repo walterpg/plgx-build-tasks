@@ -90,7 +90,7 @@
   <Target Name="EnsurePlgxOutputFolder" Outputs="PlgxOutputFolder"
           Condition=" '$(PlgxOutputFolder)' == '' ">
     <PropertyGroup>
-      <PlgxOutputFolder>$(MSBuildProjectDirectory)\$(OutputPath)</PlgxOutputFolder>
+      <PlgxOutputFolder>$(OutputPath)</PlgxOutputFolder>
     </PropertyGroup>
   </Target>
 
@@ -146,14 +146,6 @@
     </PropertyGroup>
   </Target>
   
-  <!--
-    Extend 'clean' target to remove output file.
-  -->
-  <Target Name="PlgxDeleteOutputFile"
-          DependsOnTargets="SetPlgxOutputPath">
-    <Delete Files="$(PlgxOutputPath)" />
-  </Target>
-
   <PropertyGroup>
     <PlgxBuildDependsOn>
       SetPlgxOutputPath;
@@ -162,7 +154,7 @@
       PlgxValidateUseCompiledResource;
       PlgxValidateTargetOs;
       PlgxValidateTargetPtrSize;
-      Build
+      CopyFilesToOutputDirectory
     </PlgxBuildDependsOn>
     <PlgxBuildInputs>
       $(MSBuildAllProjects);
@@ -172,12 +164,12 @@
       @(Content);
       @(Reference);
     </PlgxBuildInputs>
-    <CleanDependsOn>$(CleanDependsOn);PlgxDeleteOutputFile;</CleanDependsOn>
   </PropertyGroup>
 
   <UsingTask TaskName="PlgxBuildTask"  AssemblyFile="$(PlgxBuildTasksDir)PlgxBuildTasks.dll" />
   
-  <Target Name="PlgxBuild" DependsOnTargets="$(PlgxBuildDependsOn)" AfterTargets="Build"
+  <Target Name="PlgxBuild" DependsOnTargets="$(PlgxBuildDependsOn)"
+          AfterTargets="CopyFilesToOutputDirectory"
           Inputs="$(PlgxBuildInputs)"
           Outputs="$(PlgxOutputPath)"
           Condition=" '$(GeneratePlgx)' == 'true'">
@@ -199,9 +191,12 @@
         TargetNetFramework="$(PlgxTargetNetFramework)"
         TargetKpVersion="$(PlgxTargetKpVersion)"
         UseCompiledResource="$(PlgxUseCompiledResource)"
+        OutputPlgx="$(PlgxOutputPath)"
+    >
+      <Output TaskParameter="OutputPlgx" ItemName="FileWrites"/>
+    </PlgxBuildTask>
+    <Message Importance="high"             
+        Text="$(AssemblyName) -&gt; $([MSBuild]::NormalizePath('$(PlgxOutputPath)'))"
     />
-    <Message Importance="high"
-        Text="$(AssemblyName) -> $(PlgxOutputPath)"
-    /> 
   </Target>
 </Project>

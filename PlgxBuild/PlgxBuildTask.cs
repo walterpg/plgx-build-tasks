@@ -19,6 +19,7 @@
 */
 
 using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -73,6 +74,10 @@ namespace PlgxBuildTasks
 
         [Required]
         public ITaskItem[] ResolvedReference { get; set; }
+
+        [Required]
+        [Output]
+        public ITaskItem[] OutputPlgx { get; set; }
 
         public string BeforeCommand { get; set; }
 
@@ -469,6 +474,24 @@ namespace PlgxBuildTasks
 
         bool GenerateFiles()
         {
+            // Get the output directory.
+            string dirFullPath = PlgxFileFolder;
+            if (Path.IsPathRooted(dirFullPath))
+            {
+                Log.LogError($"{nameof(PlgxFileFolder)} must be specified as a " +
+                    "path relative to the project directory.");
+                return false;
+            }
+            else
+            {
+                dirFullPath = Path.Combine(ProjectFileFolder, dirFullPath);
+            }
+            if (!dirFullPath.EndsWith(
+                    new string(new[] { Path.DirectorySeparatorChar })))
+            {
+                dirFullPath += Path.DirectorySeparatorChar;
+            }
+
             string newProjectFile = AssemblyName + ".csproj";
             string newProjectPath
                 = Path.Combine(PlgxTempFolder, newProjectFile);
@@ -482,7 +505,7 @@ namespace PlgxBuildTasks
                 TargetKpVersionString = TargetKpVersion,
                 PreProc = BeforeCommand,
                 PostProc = ModifiedAfterCommand,
-                OutputFilePath = PlgxFileFolder +
+                OutputFilePath = dirFullPath +
                     ArchiveBaseFileName + ".plgx",
             })
             using (XmlWriter xw = XmlWriter.Create(newProjectPath,
@@ -500,6 +523,11 @@ namespace PlgxBuildTasks
                 {
                     xw.Close();
                     m_writer.AddFile(newProjectPath, newProjectFile);
+                    OutputPlgx = new ITaskItem[]
+                    {
+                        new TaskItem(PlgxFileFolder +
+                            ArchiveBaseFileName + ".plgx")
+                    };
                 }
             }
             return !Log.HasLoggedErrors;
@@ -508,12 +536,8 @@ namespace PlgxBuildTasks
         public override bool Execute()
         {
             //System.Diagnostics.Debugger.Launch();
-            
-            // Get the output directory.
-            if (!Path.IsPathRooted(PlgxFileFolder))
-            {
-                PlgxFileFolder = Path.Combine(ProjectFileFolder, PlgxFileFolder);
-            }
+
+            OutputPlgx = new ITaskItem[] { };
 
             // Keep local temp files in a tidy place.
             if (!EnsureTempFolder())
