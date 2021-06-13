@@ -498,7 +498,7 @@ namespace PlgxBuildTasks
             using (m_writer = new KpPlgxWriter(Log)
             {
                 BaseFileName = AssemblyName,
-                FileGuid = new Guid(),
+                FileGuid = Guid.NewGuid(),
                 TargetNetFramework = TargetNetFramework,
                 TargetOsMoniker = TargetOsMoniker,
                 TargetPointerSize = TargetPointerSize,
