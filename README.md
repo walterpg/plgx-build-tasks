@@ -42,7 +42,7 @@ Today, KeePass users benefit from [a large collection of useful plugins](https:/
 * Optionally,`<EmbeddedResource>` items may be archived as pre-complied .RESOURCE files, for a modest boost in initialization performance and further reduced .PLGX file size.
 * Several [MSBuild property extensions](#properties) are defined and can be overridden to customize the output, including archive contents, name, output path, and KeePass .PLGX deployment options.
 * Build-time checks for a few common plugin development pitfalls produce build errors or warnings.
-* `/t:clean` target extension (tries) to ensure proper removal of .PLGX output.
+* Full integration with MSBuild 'Clean' target features to ensure proper removal of .PLGX output.
 
 #### PlgxTool Compatible Features
 
@@ -55,7 +55,6 @@ Today, KeePass users benefit from [a large collection of useful plugins](https:/
 
 #### Project TODOs
 
-* Use the MSBuild "FilesList" item to fix `clean` target issues.
 * Add companion task to produce a .ZIP archive for "portable installation" distributions.
 * Enhance build-time error checks, possibly via Reflection, to ensure the output assembly meets KeePass' ["conventions"](https://keepass.info/help/v2_dev/plg_index.html#conventions).
 * Supplement MSBuild project file schema to include targets, properties, and lightweight documentation.
@@ -91,7 +90,7 @@ Today, KeePass users benefit from [a large collection of useful plugins](https:/
 ```
   <PropertyGroup>
     <PlgxArchiveFileName>$(MyAssemblyName)-$(MyVersion)</PlgxArchiveFileName>
-    <PlgxOutputFolder>$(MSBuildProjectDirectory)\bin\$(Configuration)\plgx\</PlgxOutputFolder>
+    <PlgxOutputFolder>bin\$(Configuration)\plgx\</PlgxOutputFolder>
   </PropertyGroup>
 ```
 
@@ -104,7 +103,7 @@ Specify these properties within a `<PropertyGroup>` element of your project file
 | Property              | Default value                         | Description                |
 |-----------------------|---------------------------------------|----------------------------|
 | `PlgxArchiveFileName`   | Base name of the plugin assembly, for example `MyPlugin`.| The name of the output .PLGX file, specified as a base file name (without the .PLGX extension).|
-| `PlgxOutputFolder`      | The project output folder, `$(OutputPath)`. | The directory where the output .PLGX file will be placed.  Specify as an absolute path or relative to the project file directory.|
+| `PlgxOutputFolder`      | The project output folder, `$(OutputPath)`. | The directory where the output .PLGX file will be placed.  Must be specified as a partial path relative to the project file directory, e.g., "bin\\$(Configuration)\\plgx\\".|
 | `PlgxTargetKpVersion`   | No default.                      | Optional. If specified, sets the `--plgx-prereq-kp` option to declare the "minimum" KeePass version supported by the plugin. KeePass only recognizes release numbers given in simple, dotted notation, e.g., "2.09".|
 | `PlgxTargetNetFramework` | The project target framework, `$(TargetFrameworkVersion)`.   | Sets the `--plgx-prereq-net` option to declare the .NET Framework version requirements of the plugin. Valid values are dotted notation .NET Framework version numbers with no prefix. For example, "4.5" or "4.7.2". Set this property to an empty string to omit `--plgx-prereq-net` from the .PLGX manifest. |
 | `PlgxTargetOs`          | `Windows`                        | Sets the `--plgx-prereq-os` option to declare the operating system required by the plugin. KeePass recognizes only two values: `Unix`, and `Windows`. Set this property to an empty string to omit `--plgx-prereq-os` from the .PLGX manifest. |
