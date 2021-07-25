@@ -309,31 +309,61 @@ namespace PlgxBuildTasks
                 CopyItemToTemp(xw, i.ItemSpec, ProjectReferencesFolderName +
                     Path.DirectorySeparatorChar, bCopyToSubDirRoot: false);
             }
-            IEnumerable<ITaskItem> nonKeePassRefs
-                = ResolvedReference.Where(
-                    r => !"KeePass.exe".Equals(
-                        Path.GetFileName(r.ItemSpec),
-                            StringComparison.OrdinalIgnoreCase));
-            AddItems("Reference", nonKeePassRefs, xw, resolveInclude,
+            IEnumerable<ITaskItem> refFilter;
+            refFilter = ResolvedReference.Where(r =>
+            {
+                string fileName = Path.GetFileName(r.ItemSpec);
+                StringComparison sc = StrComparisonOIC;
+
+                // KeePass adds a reference to its csc.exe command, so this
+                // one isn't needed.
+                bool exclude = "KeePass.exe".Equals(fileName, sc);
+
+                // ResolvedReference apparently includes .pdb files.
+                exclude |= string.IsNullOrEmpty(fileName) ||
+                    fileName.EndsWith(".pdb", sc);
+
+                return !exclude;
+            });
+            AddItems("Reference", refFilter, xw, resolveInclude,
                 adornAndCopy);
         }
 
+        static StringComparison StrComparisonOIC =>
+            StringComparison.OrdinalIgnoreCase;
+
+        static StringComparer StrComparerOIC =>
+            StringComparer.OrdinalIgnoreCase;
+
         void AddSystemReferenceItems(XmlWriter xw)
         {
-            // Exclude refs already added as "resolved".
-            var sysRefs = Reference.Where(
-                r => !ResolvedReference.Select(rr => rr.ItemSpec)
-                    .Contains(r.ItemSpec, StringComparer.Ordinal));
+            var sysRefs = Reference.Where(r =>
+            {
+                bool exclude;
 
-            // Exclude KeePass reference, to save KP the trouble.
-            sysRefs = sysRefs.Where(
-                r => (!string.IsNullOrEmpty(r.ItemSpec) &&
-                        !r.ItemSpec.StartsWith("KeePass",
-                            StringComparison.Ordinal)) ||
-                     (r.HasMetadata("HintPath") &&
-                     !string.Equals("KeePass.exe",
-                        Path.GetFileName(r.GetMetadata("HintPath")),
-                        StringComparison.OrdinalIgnoreCase)));
+                // Exclude refs already added as "resolved".
+                exclude = ResolvedReference.Select(rr => rr.ItemSpec)
+                    .Contains(r.ItemSpec, StrComparerOIC);
+
+                // Another look for KeePass.
+                if (!exclude)
+                {
+                    StringComparison sc = StrComparisonOIC;
+                    exclude = string.IsNullOrEmpty(r.ItemSpec);
+                    if (!exclude)
+                    {
+                        exclude = r.ItemSpec.StartsWith("KeePass", sc);
+                        if (!exclude && r.HasMetadata("HintPath"))
+                        {
+                            string hintPath = r.GetMetadata("HintPath");
+                            string hintFile = Path.GetFileName(hintPath);
+                            exclude = string.Equals("KeePass.exe",
+                                hintFile, sc);
+                        }
+                    }
+                }
+                return !exclude;
+            });
 
             AddItems("Reference", sysRefs, xw);
         }
@@ -535,7 +565,7 @@ namespace PlgxBuildTasks
 
         public override bool Execute()
         {
-            //System.Diagnostics.Debugger.Launch();
+            System.Diagnostics.Debugger.Launch();
 
             OutputPlgx = new ITaskItem[] { };
 

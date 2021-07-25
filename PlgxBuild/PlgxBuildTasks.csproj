@@ -22,7 +22,7 @@
 
   <PropertyGroup>
     <AssemblyName>PlgxBuildTasks</AssemblyName>
-    <VersionPrefix Condition=" '$(VersionPrefix)' == ''">0.0.0</VersionPrefix>
+    <VersionPrefix Condition=" '$(VersionPrefix)' == ''">1.0.0</VersionPrefix>
     <VersionSuffix Condition=" '$(VersionSuffix)' == ''">unstable</VersionSuffix>
     <InformationalVersion>$(Version)</InformationalVersion>
     <AssemblyProduct>PLGX Build Tasks</AssemblyProduct>
@@ -58,6 +58,10 @@
   <PropertyGroup>
     <IntermediatePackDir>$(MSBuildProjectDirectory)\bin\$(Configuration)\publish\</IntermediatePackDir>
     <PublishDir>$(IntermediatePackDir)$(TargetFramework)\</PublishDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <!-- Reclassify the .targets file -->
