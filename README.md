@@ -1,5 +1,5 @@
 
-## PLGX Build Tasks
+## [PLGX Build Tasks](https://www.nuget.org/packages/PlgxBuildTasks/)
 The MSBuild task in this package uses build items, item metadata and a "clean room" implementation of the [KeePass 2.x](https://keepass.info) archive creation utility to generate .PLGX files as a plugin project's build product.  This was inspired by and partially mimics the [KeePassPluginDevTools](https://github.com/dlech/KeePassPluginDevTools) package, a.k.a. [**PlgxTool**](https://www.nuget.org/packages/PlgxTool).
 
 So....why??  Primarily for development flexibility.  While the strict [coding requirements](https://keepass.info/help/v2_dev/plg_index.html) for KeePass plugins are well defined, new build environments such as the [`dotnet` CLI](https://docs.microsoft.com/en-us/dotnet/core/install/windows) are welcome changes to old-school .NET development. Also, by fully integrating .PLGX production within MSBuild, new features leveraging intermediate build products are achievable, such as localization resource deployment.
@@ -35,7 +35,7 @@ Today, KeePass users benefit from [a large collection of useful plugins](https:/
 
 * Supports both [.NET SDK](https://docs.microsoft.com/en-us/dotnet/core/project-sdk/overview#project-files) and traditional .NET Framework project file types.
 * Supports either `<PackageReference>` or `packages.config` NuGet dependencies.
-* Supports deployment of MSBuild-generated, resource-only satellite assemblies, commonly used for localization (Hint: currently, this feature requires you to set the [`<Satellite_ProducName>` property](https://docs.microsoft.com/en-us/visualstudio/msbuild/common-msbuild-project-properties?view=vs-2019#list-of-common-properties-and-parameters) to specify something other than "KeePass Plugin", so KeePass doesn't confuse it with the plugin assembly).
+* Supports deployment of MSBuild-generated, resource-only satellite assemblies, commonly used for localization (Hint: currently, this feature requires you to set the [`<Satellite_ProductName>` property](https://docs.microsoft.com/en-us/visualstudio/msbuild/common-msbuild-project-properties?view=vs-2019#list-of-common-properties-and-parameters) to specify something other than "KeePass Plugin", so KeePass doesn't confuse it with the plugin assembly).
 * Uses MSBuild item and item metadata products, rather than a separate scan of project file contents, to populate the archive.
 * Archives a task-generated, minimal project file, rather than a copy of the development project file. The development project file name need not match the plugin symbolic name.
 * .PLGX files are almost always smaller.

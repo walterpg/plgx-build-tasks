@@ -565,7 +565,7 @@ namespace PlgxBuildTasks
 
         public override bool Execute()
         {
-            System.Diagnostics.Debugger.Launch();
+            // System.Diagnostics.Debugger.Launch();
 
             OutputPlgx = new ITaskItem[] { };
 
