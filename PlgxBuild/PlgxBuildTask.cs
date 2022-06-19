@@ -362,6 +362,32 @@ namespace PlgxBuildTasks
                         }
                     }
                 }
+
+                // Exclude hard-coded (unresolved) references.
+                if (!exclude &&
+                    !string.IsNullOrEmpty(
+                        Path.GetDirectoryName(r.ItemSpec)))
+                {
+                    // If a reference has a hard path, as some multi-
+                    // targeting NuGet packages will, make sure it
+                    // was not already resolved to this build's TFM-
+                    // specific directory.
+                    string bareFileName =
+                        Path.GetFileNameWithoutExtension(r.ItemSpec);
+                    exclude = ResolvedReference.Select(
+                            rr => Path.GetFileNameWithoutExtension(rr.ItemSpec))
+                        .Contains(bareFileName, StrComparerOIC);
+                    if (!exclude)
+                    {
+                        Log.LogWarning("Excluding unresolved assembly " +
+                            "reference '{0}'. Perhaps the assembly isn't " +
+                            "referenced by the plugin's code, or the " +
+                            "file for the reference ({1}) is targeting " +
+                            "a different .NET Framework version than " +
+                            "the plugin.",
+                            bareFileName, r.ItemSpec);
+                    }
+                }
                 return !exclude;
             });
 
@@ -565,7 +591,7 @@ namespace PlgxBuildTasks
 
         public override bool Execute()
         {
-            // System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
 
             OutputPlgx = new ITaskItem[] { };
 

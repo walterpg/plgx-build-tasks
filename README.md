@@ -53,6 +53,16 @@ Today, KeePass users benefit from [a large collection of useful plugins](https:/
 #### PlgxTool Incompatibility
 * The `<PlgxConfiguration>` property is not supported. That property's `<Prerequisistes>` XML fragment, which provides the means to set some .PLGX creation options, is replaced by individual, first-class [MSBuild properties](#properties).
 
+#### Limitation
+
+* Microsoft NuGet packages providing .NET Framework "shim" types for older frameworks are not supported by the current PLGX format.
+
+These packages can allow projects targeting older .NET frameworks access to features available in newer .NET frameworks. One example is [`System.Runtime.InteropServices.RuntimeInformation`](https://www.nuget.org/packages/System.Runtime.InteropServices.RuntimeInformation).  The types in this package are provided by `mscorlib.dll`, etc., in .NET 4.7.1 and newer frameworks.  By referencing the NuGet package, projects targeting frameworks as old as .NET 4.5 may also access those types.  Unfortunately, this technique won't work for PLGX builds run by KeePass, unless the target machine is actually running an older framework. Machines running .NET 4.7.1 or later will fail to install the plugin via PLGX, due to the collision of types in `System.Runtime.InteropServices.RuntimeInformation` and `mscorlib`. 
+
+>Hint: When PLGX builds fail, use the `-debug` option of `KeePass.exe` to see compiler error output.
+
+KeePass doesn't currently provide a way to control how these supplemental references are compiled into the plugin (like MSBuild does, for example). The only workaround for this issue is to avoid referencing such packages.
+
 #### Project TODOs
 
 * Add companion task to produce a .ZIP archive for "portable installation" distributions.
