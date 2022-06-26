@@ -35,14 +35,11 @@
 
   <!-- NuGet pack properties -->
   <PropertyGroup>
-    <PackageId>$(AssemblyName)</PackageId>
     <Authors>walterpg</Authors>
     <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
     <Title>PLGX Build Tasks</Title>
-    <Description>
-      PLGX archive creation for KeePass plugin MSBuild projects.
-      KeePass is available from https://keepass.info.
-    </Description>
+    <Description>PLGX archive creation for KeePass plugin MSBuild projects.
+KeePass is available from https://keepass.info.</Description>
     <Copyright>Copyright @  2021 Walter Goodwin</Copyright>
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/walterpg/plgx-build-tasks</PackageProjectUrl>

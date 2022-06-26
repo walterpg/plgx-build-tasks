@@ -13,6 +13,7 @@
     <repository type="git" url="$repository$" />
     <tags>$tags$</tags>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <developmentDependency>true</developmentDependency>
   </metadata>
   <files>
     <file src="PlgxBuildTasks.targets" target="$buildOutTarget$"/>
