@@ -22,7 +22,7 @@
 
   <PropertyGroup>
     <AssemblyName>PlgxBuildTasks</AssemblyName>
-    <VersionPrefix Condition=" '$(VersionPrefix)' == ''">1.1.1</VersionPrefix>
+    <VersionPrefix Condition=" '$(VersionPrefix)' == ''">1.1.2</VersionPrefix>
     <VersionSuffix Condition=" '$(VersionSuffix)' == ''">unstable</VersionSuffix>
     <InformationalVersion>$(Version)</InformationalVersion>
     <AssemblyProduct>PLGX Build Tasks</AssemblyProduct>

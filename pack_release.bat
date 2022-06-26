@@ -25,6 +25,8 @@
 
 ::
 :: Procedure for creating a new package release:
+:: 0) Commit mod to project's VersionPrefix property, e.g
+::    <VersionPrefix>1.0.0</VersionPrefix>
 :: 1) Commit and tag the release, e.g.
 ::    `git tag -a v1.0.0-beta -s -m "Version 1.0"`
 :: 2) Push the tag to remote:
